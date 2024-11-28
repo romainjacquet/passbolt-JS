@@ -1,0 +1,16 @@
+{
+    "name": "passbolt-js",
+    "version": "1.0.0",
+    "description": "Minimal abstraction to access to Passbolt API",
+    "dependencies": {
+        "commander": "^12.1.0",
+        "node-fetch": "^3.3.2",
+        "openpgp": "6.0.0"
+    },
+    "scripts": {
+        "lint": "standard"
+    },
+    "devDependencies": {
+        "standard": "^17.1.2"
+    }
+}
