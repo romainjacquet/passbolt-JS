@@ -1,7 +1,5 @@
 
 
-const openpgp = require('openpgp');
-const fs = require('fs');
 const commander = require('commander');
 const passbolt = require('../src/passbolt');
 
@@ -19,17 +17,13 @@ async function main(){
     .parse(process.argv)
     let program_options = program.opts()
 
-    // read the PGP key
-    const clientPrivateKeyArmored = fs.readFileSync(program_options.clientPrivateKey, {encoding: 'utf8',});
-    const clientPrivateKey = await openpgp.decryptKey({
-        privateKey: await openpgp.readPrivateKey({armoredKey: clientPrivateKeyArmored}),
-        passphrase: program_options.clientPassphrase });
-
     // connect to passbolt
     let client = new passbolt.Passbolt(program_options.url);
     if(! await client.login(
         program_options.userUuid,
-        clientPrivateKey)){
+        program_options.clientPrivateKey,
+        program_options.clientPassphrase
+    )){
             console.error( `Failed to login to ${program_options.url}`)
     } else {
         console.log("Successfull login on " + program_options.url)

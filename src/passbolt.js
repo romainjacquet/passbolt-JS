@@ -1,5 +1,6 @@
 const openpgp = require('openpgp')
 const crypto = require('crypto')
+const fs = require('fs')
 
 // node-fetch no longer support commonJS
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args))
@@ -23,12 +24,19 @@ class Passbolt {
   /**
     login to the passbolt server and get JWT access token
     this is a basic challenge encrypting an uuid
-    @param userId uuid of the user in passbolt DB
-    @param privateKey private key of client, openpgp key object
+    @param {string} userId uuid of the user in passbolt DB
+    @param {string} privateKeyPath private key of client, openpgp key object
+    @param {string} passphrase of the client key
     */
-  async login (userId, privateKey) {
+  async login (userId, privateKeyPath, passphrase) {
+    // read the private key from FS
+        // read the PGP key
+    const clientPrivateKeyArmored = fs.readFileSync(privateKeyPath, {encoding: 'utf8',});
+    this.gpgClientPrivateKey = await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({armoredKey: clientPrivateKeyArmored}),
+        passphrase: passphrase });
+
     this.gpgPublicServerKey = await this.getServerGpgPubkey()
-    this.gpgClientPrivateKey = privateKey
     const generaredVerifiedToken = crypto.randomUUID()
     const json = {
       version: '1.0.0',
@@ -184,7 +192,6 @@ class Passbolt {
 
     const url = this.serverUrl + '/resources.json'
 
-    // TODO remove hardcoded resource and query API /resource-types.json
     const body = {
       name: 'password4' + object['username'],
       resource_type_id: this.resourcesTypes[object['resourceType']],
